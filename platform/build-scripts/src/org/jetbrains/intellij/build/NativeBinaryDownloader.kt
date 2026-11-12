@@ -109,6 +109,11 @@ object NativeBinaryDownloader {
    * Downloads and unpacks the WebP tarball and returns a path to a library for the given platform.
    */
   fun getLibWebp(context: BuildContext, os: OsFamily, arch: JvmArchitecture): Path {
+    // Android Studio (b/568401998): we use our own checked-in libwebp binaries instead of downloading them from JetBrains.
+    val path = context.paths.communityHomeDirRoot.communityRoot
+      .resolve("plugins/webp/lib/libwebp/${os.dirName}/${arch.dirName}/${os.libraryName("webp_jni")}")
+    check(path.isRegularFile()) { "Android Studio (b/568401998): expected prebuilt binary at: $path" }
+    return path
     val (archiveFile, unpackedDir) = downloadAndUnpack(context, "libwebpVersion", LIBWEBP_ID)
     return findFile(archiveFile, unpackedDir, libName(os, arch, "webp_jni"))
   }
@@ -128,11 +133,7 @@ object NativeBinaryDownloader {
   }
 
   private fun downloadAndUnpack(context: BuildContext, propertyName: String, artifactId: String): Pair<Path, Path> {
-    // TODO(b/568401998): libwebp is temporarily exempt because upstream commit 58dff8813143 deleted the
-    // checked-in plugins/webp/lib/libwebp binaries. Build it from source like the launcher and restarter.
-    if (artifactId != LIBWEBP_ID) {
-      error("Android Studio (b/342419219): platform binaries should be built from source instead of downloaded from JetBrains")
-    }
+    error("Android Studio (b/342419219): platform binaries should be built from source instead of downloaded from JetBrains")
     val communityRoot = context.paths.communityHomeDirRoot
     val version = context.dependenciesProperties.property(propertyName)
     val uri = BuildDependenciesDownloader.getUriForMavenArtifact(INTELLIJ_DEPENDENCIES_URL, GROUP_ID, artifactId, version, PACKAGING)
