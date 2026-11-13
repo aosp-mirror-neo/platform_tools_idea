@@ -61,6 +61,13 @@ target_include_directories(webp_jni PRIVATE
 )
 target_link_libraries(webp_jni PRIVATE webp)
 
+if(MSVC)
+  # Don't embed the default UAC manifest. Windows creates an activation context when loading a DLL that has one,
+  # and that fails with "The filename or extension is too long" when the DLL path is near MAX_PATH (e.g., in
+  # Bazel runfiles directories).
+  target_link_options(webp_jni PRIVATE /MANIFEST:NO)
+endif()
+
 if(WIN32)
   set(WEBP_JNI_PREFIX "")
 else()
